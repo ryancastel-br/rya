@@ -317,6 +317,156 @@ const canvas=document.getElementById("game");
 
 const ctx=canvas.getContext("2d");
 
+  //===========================
+// SISTEMA DE JOGO
+//===========================
+
+let round=1;
+let maxRounds=5;
+
+let goalkeeperDifficulty=0.05;
+
+let crowdAnimation=0;
+
+let wind=Math.random()*0.15-0.075;
+
+let flash=0;
+
+let stadiumLights=0;
+
+let goalTimer=0;
+
+let combo=0;
+
+let gameOver=false;
+
+  function drawSky(){
+
+let g=ctx.createLinearGradient(
+0,
+0,
+0,
+canvas.height
+);
+
+g.addColorStop(0,"#4db8ff");
+g.addColorStop(.45,"#8dd9ff");
+g.addColorStop(1,"#46a546");
+
+ctx.fillStyle=g;
+ctx.fillRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+// Sol
+
+ctx.beginPath();
+
+ctx.fillStyle="#ffe97a";
+
+ctx.arc(
+canvas.width-180,
+120,
+55,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+// Nuvens
+
+ctx.fillStyle="rgba(255,255,255,.85)";
+
+for(let i=0;i<8;i++){
+
+let x=(i*250+performance.now()*0.02)%(
+canvas.width+300
+)-150;
+
+let y=60+(i%3)*45;
+
+ctx.beginPath();
+
+ctx.arc(x,y,30,0,Math.PI*2);
+ctx.arc(x+35,y+5,28,0,Math.PI*2);
+ctx.arc(x-35,y+5,25,0,Math.PI*2);
+
+ctx.fill();
+
+}
+
+}
+
+  function drawCrowd(){
+
+crowdAnimation+=0.08;
+
+for(let i=0;i<canvas.width;i+=8){
+
+let h=
+
+35+
+
+Math.sin(i*.05+crowdAnimation)*6+
+
+Math.cos(i*.03+crowdAnimation)*5;
+
+ctx.fillStyle=
+
+(i%16)?
+
+"#444":
+
+"#888";
+
+ctx.fillRect(
+
+i,
+
+0,
+
+8,
+
+h
+
+);
+
+}
+
+}
+
+  function drawLights(){
+
+stadiumLights+=0.03;
+
+ctx.fillStyle=
+
+"rgba(255,255,255,"+
+
+(.05+
+
+Math.sin(stadiumLights)*.02)+
+
+")";
+
+ctx.fillRect(
+
+0,
+
+0,
+
+canvas.width,
+
+canvas.height
+
+);
+
+}
+
 function resize(){
 
 canvas.width=window.innerWidth;
@@ -881,20 +1031,44 @@ ctx.restore();
 
 function drawBackground(){
 
-let g=ctx.createLinearGradient(0,0,0,canvas.height);
+drawSky();
 
-g.addColorStop(0,"#6ec6ff");
+drawCrowd();
 
-g.addColorStop(.55,"#56c956");
+let g=
 
-g.addColorStop(1,"#2e7d32");
+ctx.createLinearGradient(
+
+0,
+
+canvas.height*.3,
+
+0,
+
+canvas.height
+
+);
+
+g.addColorStop(0,"#5bc85b");
+g.addColorStop(1,"#2f7d32");
 
 ctx.fillStyle=g;
 
-ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.fillRect(
+
+0,
+
+canvas.height*.28,
+
+canvas.width,
+
+canvas.height
+
+);
+
+drawLights();
 
 }
-
   //===========================
 // PARTÍCULAS
 //===========================
@@ -1071,6 +1245,10 @@ BALL.moving=false;
 
 saves++;
 
+  combo=0;
+
+goalkeeperDifficulty+=0.01;
+
 document.getElementById("defesas").innerHTML="Defesas: "+saves;
 
 document.getElementById("message").style.display="block";
@@ -1112,6 +1290,17 @@ GOAL.x+GOAL.width/2
 BALL.moving=false;
 
 score++;
+combo++;
+
+flash=18;
+
+goalTimer=120;
+
+if(combo>=3){
+
+goalkeeperDifficulty+=0.02;
+
+}
 
 document.getElementById("gols").innerHTML="Gols: "+score;
 
@@ -1181,6 +1370,8 @@ powerFill.style.width=powerValue+"%";
 
 if(BALL.moving){
 
+BALL.vx+=wind;
+  
 BALL.x+=BALL.vx;
 
 BALL.y+=BALL.vy;
@@ -1200,7 +1391,62 @@ checkCollision();
 }
 
 }
+if(flash>0){
 
+ctx.fillStyle=
+
+"rgba(255,255,255,"+
+
+flash/25+
+
+")";
+
+ctx.fillRect(
+
+0,
+
+0,
+
+canvas.width,
+
+canvas.height
+
+);
+
+flash--;
+
+}
+
+if(goalTimer>0){
+
+goalTimer--;
+
+ctx.save();
+
+ctx.globalAlpha=
+
+goalTimer/120;
+
+ctx.font="bold 80px Arial";
+
+ctx.textAlign="center";
+
+ctx.fillStyle="gold";
+
+ctx.fillText(
+
+"GOOOOOOOL!",
+
+canvas.width/2,
+
+150
+
+);
+
+ctx.restore();
+
+}
+  
 ctx.restore();
 
 }
